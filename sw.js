@@ -1,4 +1,4 @@
-const CACHE = "typing-v3";
+const CACHE = "typing-v4";
 const ASSETS = [
   "./",
   "./index.html",
