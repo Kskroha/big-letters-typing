@@ -1,0 +1,260 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg: #eef4fb;
+  --surface: #ffffff;
+  --text: #1a2b3c;
+  --text-muted: #5a6d7d;
+  --key-bg: #ffffff;
+  --key-border: #c8d8e8;
+  --key-text: #1a2b3c;
+  --key-active-bg: #dbeafe;
+  --key-active-border: #4a90d9;
+  --shift-active-bg: #4a90d9;
+  --shift-active-text: #ffffff;
+  --space-bg: #e8f2fc;
+  --enter-bg: #3d8bfd;
+  --enter-text: #ffffff;
+  --clear-bg: #f0f4f8;
+  --clear-border: #c8d8e8;
+  --shadow: 0 2px 8px rgba(26, 43, 60, 0.08);
+  --key-shadow: 0 3px 0 #b0c4d8;
+  --radius: 14px;
+  --font-display: clamp(2rem, 6vw, 4.5rem);
+  --font-key: clamp(1.4rem, 3.5vw, 2.4rem);
+  --font-special: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  touch-action: manipulation;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100dvh;
+}
+
+/* ── Text area ── */
+
+.text-area-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 20px 12px;
+  min-height: 0;
+  gap: 10px;
+}
+
+.text-display {
+  flex: 1;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  font-size: var(--font-display);
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  word-wrap: break-word;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: pre-wrap;
+  min-height: 120px;
+  color: var(--text);
+}
+
+.text-display:empty::before {
+  content: "Начните печатать…";
+  color: var(--text-muted);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+}
+
+.clear-btn {
+  align-self: flex-end;
+  padding: 10px 20px;
+  font-size: var(--font-special);
+  font-weight: 600;
+  border: 2px solid var(--clear-border);
+  border-radius: 10px;
+  background: var(--clear-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.clear-btn:active {
+  transform: scale(0.95);
+  background: #e2eaf2;
+}
+
+/* ── Keyboard ── */
+
+.keyboard {
+  flex-shrink: 0;
+  padding: 8px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(to top, #dce8f4 0%, var(--bg) 100%);
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.key {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  min-height: clamp(52px, 10vh, 80px);
+  max-height: 80px;
+  padding: 4px 2px;
+  font-size: var(--font-key);
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--key-text);
+  background: var(--key-bg);
+  border: 2px solid var(--key-border);
+  border-radius: 12px;
+  box-shadow: var(--key-shadow);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+  overflow: hidden;
+}
+
+.key::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(74, 144, 217, 0.25) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.key.pressed {
+  transform: translateY(3px) scale(0.96);
+  box-shadow: 0 0 0 #b0c4d8;
+  background: var(--key-active-bg);
+  border-color: var(--key-active-border);
+}
+
+.key.pressed::after {
+  opacity: 1;
+  transform: scale(1.5);
+}
+
+.key--shift {
+  flex: 1.4;
+  font-size: var(--font-special);
+}
+
+.key--shift.active {
+  background: var(--shift-active-bg);
+  color: var(--shift-active-text);
+  border-color: #357abd;
+  box-shadow: 0 3px 0 #357abd;
+}
+
+.key--shift.active.pressed {
+  box-shadow: 0 0 0 #357abd;
+}
+
+.key--space {
+  flex: 4;
+  font-size: var(--font-special);
+  background: var(--space-bg);
+  letter-spacing: 0.05em;
+}
+
+.key--backspace {
+  flex: 1.6;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  background: #fff0eb;
+  border-color: #f0c4b8;
+  box-shadow: 0 3px 0 #e0b0a4;
+}
+
+.key--backspace.pressed {
+  background: #ffe4dc;
+  border-color: #e8a090;
+  box-shadow: 0 0 0 #e0b0a4;
+}
+
+.key--enter {
+  flex: 1.6;
+  font-size: var(--font-special);
+  background: var(--enter-bg);
+  color: var(--enter-text);
+  border-color: #2d7ae0;
+  box-shadow: 0 3px 0 #2d7ae0;
+}
+
+.key--enter.pressed {
+  background: #2d7ae0;
+  box-shadow: 0 0 0 #2d7ae0;
+}
+
+/* ── iPad landscape: more horizontal space for keys ── */
+
+@media (min-width: 768px) {
+  .keyboard {
+    padding: 10px 24px 16px;
+    gap: 10px;
+  }
+
+  .keyboard-row {
+    gap: 8px;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .text-area-wrapper {
+    padding: 20px 32px 14px;
+  }
+
+  .text-display {
+    padding: 28px 32px;
+  }
+}
+
+/* ── Very small screens: slightly tighter ── */
+
+@media (max-height: 500px) {
+  .text-display {
+    min-height: 80px;
+    padding: 12px 16px;
+  }
+
+  .key {
+    min-height: 44px;
+    max-height: 56px;
+  }
+}
