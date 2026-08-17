@@ -1,20 +1,35 @@
-const ROWS = [
+const ROWS_DESKTOP = [
   ["й", "ц", "у", "к", "е", "ё", "н", "г", "ш", "щ", "з", "х", "ъ"],
   ["ф", "ы", "в", "а", "п", "р", "о", "л", "д", "ж", "э"],
   ["я", "ч", "с", "м", "и", "т", "ь", "б", "ю"],
 ];
 
-const UPPER = Object.fromEntries(
-  ROWS.flat().map((letter) => [letter, letter.toUpperCase()])
-);
+const ROWS_MOBILE = [
+  ["й", "ц", "у", "к", "е", "ё", "н"],
+  ["г", "ш", "щ", "з", "х", "ъ"],
+  ["ф", "ы", "в", "а", "п", "р", "о"],
+  ["л", "д", "ж", "э"],
+  ["я", "ч", "с", "м", "и", "т", "ь", "б", "ю"],
+];
+
+const ALL_LETTERS = [...new Set([...ROWS_DESKTOP, ...ROWS_MOBILE].flat())];
+const UPPER = Object.fromEntries(ALL_LETTERS.map((letter) => [letter, letter.toUpperCase()]));
 
 const textDisplay = document.getElementById("text-display");
 const clearBtn = document.getElementById("clear-btn");
-const keyboard = document.querySelector(".keyboard");
+const keyboard = document.getElementById("keyboard");
 
 let shiftActive = false;
 let shiftBtn = null;
 const letterKeys = new Map();
+
+function isMobileLayout() {
+  return window.matchMedia("(max-width: 767px)").matches;
+}
+
+function getRows() {
+  return isMobileLayout() ? ROWS_MOBILE : ROWS_DESKTOP;
+}
 
 function getLetter(char) {
   return shiftActive ? UPPER[char] : char;
@@ -64,8 +79,15 @@ function createKey(label, className, action) {
 }
 
 function buildKeyboard() {
-  ROWS.forEach((row, index) => {
-    const rowEl = keyboard.querySelector(`[data-row="${index + 1}"]`);
+  const mobile = isMobileLayout();
+  letterKeys.clear();
+  shiftBtn = null;
+  keyboard.innerHTML = "";
+  keyboard.classList.toggle("keyboard--mobile", mobile);
+
+  getRows().forEach((row) => {
+    const rowEl = document.createElement("div");
+    rowEl.className = "keyboard-row";
     row.forEach((letter) => {
       const key = createKey(letter, "", () => {
         appendText(getLetter(letter));
@@ -74,18 +96,21 @@ function buildKeyboard() {
       letterKeys.set(letter, key);
       rowEl.appendChild(key);
     });
+    keyboard.appendChild(rowEl);
   });
 
-  const bottomRow = keyboard.querySelector(".keyboard-row--bottom");
+  const bottomRow = document.createElement("div");
+  bottomRow.className = "keyboard-row keyboard-row--bottom";
 
-  shiftBtn = createKey("⇧ Shift", "key--shift", () => {
+  shiftBtn = createKey(mobile ? "⇧" : "⇧ Shift", "key--shift", () => {
     handleShiftToggle();
     if (navigator.vibrate) navigator.vibrate(10);
   });
-  shiftBtn.setAttribute("aria-pressed", "false");
+  shiftBtn.setAttribute("aria-pressed", String(shiftActive));
   shiftBtn.setAttribute("aria-label", "Переключить регистр");
+  if (shiftActive) shiftBtn.classList.add("active");
 
-  const spaceKey = createKey("пробел", "key--space", () => {
+  const spaceKey = createKey(mobile ? "␣" : "пробел", "key--space", () => {
     appendText(" ");
     if (navigator.vibrate) navigator.vibrate(10);
   });
@@ -97,13 +122,15 @@ function buildKeyboard() {
   });
   backspaceKey.setAttribute("aria-label", "Удалить символ");
 
-  const enterKey = createKey("↵ Enter", "key--enter", () => {
+  const enterKey = createKey(mobile ? "↵" : "↵ Enter", "key--enter", () => {
     appendText("\n");
     if (navigator.vibrate) navigator.vibrate(10);
   });
   enterKey.setAttribute("aria-label", "Новая строка");
 
   bottomRow.append(shiftBtn, spaceKey, backspaceKey, enterKey);
+  keyboard.appendChild(bottomRow);
+  updateKeyLabels();
 }
 
 clearBtn.addEventListener("click", () => {
@@ -111,6 +138,16 @@ clearBtn.addEventListener("click", () => {
 });
 
 buildKeyboard();
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const wasMobile = keyboard.classList.contains("keyboard--mobile");
+    const isMobile = isMobileLayout();
+    if (wasMobile !== isMobile) buildKeyboard();
+  }, 150);
+});
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
